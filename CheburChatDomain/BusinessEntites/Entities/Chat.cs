@@ -1,9 +1,9 @@
 ﻿namespace Domain.BusinessEntites.Entities;
 
-public class Chat
+public class Chat(string name, Guid userId)
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; }
-    public List<Guid> UserIds { get; set; }
-    public List<Guid> MessageIds { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Name { get; set; } = name;
+    public List<Guid> UserIds { get; set; } = [userId];
+    public List<Guid> MessageIds { get; set; } = [];
 }
