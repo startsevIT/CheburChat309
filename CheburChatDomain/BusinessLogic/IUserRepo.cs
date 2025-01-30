@@ -5,6 +5,6 @@ namespace Domain.BusinessLogic;
 public interface IUserRepo
 {
     public void Register(RegisterUserDTO dto);
-    public string Login(LoginUserDTO dto);
-    public GetUserDTO Read(Guid UserId);
+    public Task<string> Login(LoginUserDTO dto);
+    public Task<GetUserDTO> Read(Guid UserId);
 }

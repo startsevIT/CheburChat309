@@ -18,6 +18,7 @@ public class ChatRepo : IChatRepo
     public async Task<GetChatDTO> Read(Guid ChatId, Guid UserId)
     {
         using SqLiteDbContext db = new();
+
         Chat? chat = await db.Chats
             .Include(x => x.MessageIds)
             .Include(x => x.UserIds)
@@ -26,6 +27,8 @@ public class ChatRepo : IChatRepo
 
         if(!chat.UserIds.Contains(UserId))
             chat.UserIds.Add(UserId);
+
+        db.SaveChanges();
 
         List<string> nickNames = [];
         foreach (var u in chat.UserIds)
@@ -37,7 +40,7 @@ public class ChatRepo : IChatRepo
         foreach (var mId in chat.MessageIds)
             messages.Add(await messageRepo.Read(mId));
 
-
+        
         return new(chat.Name, messages, nickNames);
     }
 }
