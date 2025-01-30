@@ -1,21 +1,32 @@
 using Domain.BusinessEntites.DTOs;
-using Domain.BusinessEntites.Entities;
+using Infrastructure.DataBase.Repos;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder();
 var app = builder.Build();
 
-List<User> repo = [];
+MessageRepo messageRepo = new();
+UserRepo userRepo = new();
+
+userRepo.RegisterAsync(new("123", "123", "123"));
+Guid userId = await userRepo.GetId("123");
+
+ChatRepo chatRepo = new();
 
 
-app.MapPost("/register", (RegisterUserDTO dto) =>
+app.MapPost("chats", (CreateChatDTO dto) =>
 {
-    User user = new(dto.Login,dto.NickName,dto.Password);
-    repo.Add(user);
+    chatRepo.CreateAsync(dto, userId);
 });
 
-app.MapGet("/users", () =>
+app.MapGet("chats/{id}", (Guid id) =>
 {
-    return repo;
+    return chatRepo.ReadAsync(id, userId);
 });
+
+app.MapGet("users", () =>
+{
+    return userRepo.ReadAsync(userId);
+});
+
 
 app.Run();

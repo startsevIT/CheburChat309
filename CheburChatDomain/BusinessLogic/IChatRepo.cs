@@ -4,6 +4,6 @@ namespace Domain.BusinessLogic;
 
 public interface IChatRepo
 {
-    public void Create(CreateChatDTO dto, Guid UserId);
-    Task<GetChatDTO> Read(Guid ChatId, Guid UserId);
+    public void CreateAsync(CreateChatDTO dto, Guid UserId);
+    Task<GetChatDTO> ReadAsync(Guid ChatId, Guid UserId);
 }

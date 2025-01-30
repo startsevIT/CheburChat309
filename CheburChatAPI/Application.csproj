@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CheburChatDomain\Domain.csproj" />
+    <ProjectReference Include="..\CheburChat_Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

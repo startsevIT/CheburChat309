@@ -7,39 +7,43 @@ namespace Infrastructure.DataBase.Repos;
 
 public class ChatRepo : IChatRepo
 {
-    public void Create(CreateChatDTO dto, Guid UserId)
+    public async void CreateAsync(CreateChatDTO dto, Guid UserId)
     {
-        Chat chat = new(dto.Name, UserId);
-        using SqLiteDbContext db = new ();
+        using SqLiteDbContext db = new();
+        User user = await db.Users.FindAsync(UserId) 
+            ?? throw new Exception("Not found");
+        Chat chat = new(dto.Name, user);
         db.Chats.Add(chat);
         db.SaveChanges();
     }
 
-    public async Task<GetChatDTO> Read(Guid ChatId, Guid UserId)
+    public async Task<GetChatDTO> ReadAsync(Guid ChatId, Guid UserId)
     {
         using SqLiteDbContext db = new();
 
         Chat? chat = await db.Chats
-            .Include(x => x.MessageIds)
-            .Include(x => x.UserIds)
+            .Include(x => x.Messages)
+            .Include(x => x.Users)
             .FirstAsync(x => x.Id == ChatId) 
             ?? throw new Exception("Not Found");
 
-        if(!chat.UserIds.Contains(UserId))
-            chat.UserIds.Add(UserId);
-
-        db.SaveChanges();
+        if(chat.Users.Find(u => u.Id == UserId) == null)
+        {
+            User? user = await db.Users.FindAsync(UserId) 
+                ?? throw new Exception("Not found");
+            chat.Users.Add(user);
+            db.SaveChanges();
+        }
 
         List<string> nickNames = [];
-        foreach (var u in chat.UserIds)
-            nickNames.Add(db.Users.Find(u).NickName);
+        foreach (var u in chat.Users)
+            nickNames.Add(u.NickName);
 
-        List<GetMessageDTO> messages = new();
+        List<GetMessageDTO> messages = [];
         MessageRepo messageRepo = new ();
-
-        foreach (var mId in chat.MessageIds)
-            messages.Add(await messageRepo.Read(mId));
-
+        //Заменить на Mapping
+        foreach (var m in chat.Messages)
+            messages.Add(await messageRepo.ReadAsync(m.Id));
         
         return new(chat.Name, messages, nickNames);
     }

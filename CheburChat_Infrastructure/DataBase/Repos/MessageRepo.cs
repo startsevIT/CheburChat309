@@ -1,27 +1,30 @@
 ﻿using Domain.BusinessEntites.DTOs;
 using Domain.BusinessEntites.Entities;
 using Domain.BusinessLogic;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.DataBase.Repos;
 
 public class MessageRepo : IMessageRepo
 {
-    public void Create(CreateMessageDTO dto, Guid userId)
+    public async void CreateAsync(CreateMessageDTO dto, Guid userId)
     {
-        Message message = new(dto.Text, userId);
         using SqLiteDbContext db = new();
+        User? user = await db.Users.FindAsync(userId) 
+            ?? throw new Exception("Not Found");
+        Message message = new(dto.Text, user);
         db.Messages.Add(message);
         db.SaveChanges();
     }
 
-    public async Task<GetMessageDTO> Read(Guid MessageId)
+    public async Task<GetMessageDTO> ReadAsync(Guid MessageId)
     {
         using SqLiteDbContext db = new();
-        Message? message = await db.Messages.FindAsync(MessageId) 
+        Message? message = await db.Messages
+            .Include(x => x.User)
+            .FirstAsync(x => x.Id == MessageId) 
             ?? throw new Exception("Not Found message");
-        User? user = await db.Users.FindAsync(message.UserId) 
-            ?? throw new Exception("Not Found user");
 
-        return new(user.NickName, message.Text, message.DateTime);
+        return new(message.User.NickName, message.Text, message.DateTime);
     }
 }
