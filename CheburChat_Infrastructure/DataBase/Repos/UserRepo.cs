@@ -1,6 +1,7 @@
 ﻿using Domain.BusinessEntites.DTOs;
 using Domain.BusinessEntites.Entities;
 using Domain.BusinessLogic;
+using Domain.Mapping;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.DataBase.Repos;
@@ -20,11 +21,15 @@ public class UserRepo : IUserRepo
             .FirstAsync(x => x.Id == UserId) 
             ?? throw new Exception("Not Found");
 
-        List<GetInListChatDTO> chats = [];
-        foreach (var chat in user.Chats)
-            chats.Add(new(chat.Name, chat.Id));
+        //Это
+        List<GetInListChatDTO> chats = [..user.Chats.Select(x => x.Map())];
 
-        return new GetUserDTO(user.NickName, user.Login,chats);
+        //И это - одно и то же
+        //List<GetInListChatDTO> chats = [];
+        //foreach (var chat in user.Chats)
+        //    chats.Add(chat.Map());
+
+        return user.Map(chats);
     }
 
     public async void RegisterAsync(RegisterUserDTO dto)
@@ -35,15 +40,8 @@ public class UserRepo : IUserRepo
         if (tryUser != null)
             throw new Exception("Такой пользователь уже есть");
 
-        User user = new(dto.Login,dto.NickName,dto.Password);
+        User user = dto.Map();
         db.Users.Add(user);
         db.SaveChanges();
-    }
-    //Tech method
-    public async Task<Guid> GetId(string Login)
-    {
-        using SqLiteDbContext db = new();
-        User? tryUser = await db.Users.FirstAsync(x => x.Login == Login);
-        return tryUser.Id;
     }
 }

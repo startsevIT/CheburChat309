@@ -1,6 +1,7 @@
 ﻿using Domain.BusinessEntites.DTOs;
 using Domain.BusinessEntites.Entities;
 using Domain.BusinessLogic;
+using Domain.Mapping;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.DataBase.Repos;
@@ -12,7 +13,7 @@ public class MessageRepo : IMessageRepo
         using SqLiteDbContext db = new();
         User? user = await db.Users.FindAsync(userId) 
             ?? throw new Exception("Not Found");
-        Message message = new(dto.Text, user);
+        Message message = dto.Map(user);
         db.Messages.Add(message);
         db.SaveChanges();
     }
@@ -25,6 +26,6 @@ public class MessageRepo : IMessageRepo
             .FirstAsync(x => x.Id == MessageId) 
             ?? throw new Exception("Not Found message");
 
-        return new(message.User.NickName, message.Text, message.DateTime);
+        return message.Map(message.User);
     }
 }

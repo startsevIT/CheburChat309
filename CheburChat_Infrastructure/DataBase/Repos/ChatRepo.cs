@@ -1,6 +1,7 @@
 ﻿using Domain.BusinessEntites.DTOs;
 using Domain.BusinessEntites.Entities;
 using Domain.BusinessLogic;
+using Domain.Mapping;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.DataBase.Repos;
@@ -12,11 +13,12 @@ public class ChatRepo : IChatRepo
         using SqLiteDbContext db = new();
         User user = await db.Users.FindAsync(UserId) 
             ?? throw new Exception("Not found");
-        Chat chat = new(dto.Name, user);
+        Chat chat = dto.Map(user);
         db.Chats.Add(chat);
         db.SaveChanges();
     }
 
+    //Протестировать и исправить в случае не работы
     public async Task<GetChatDTO> ReadAsync(Guid ChatId, Guid UserId)
     {
         using SqLiteDbContext db = new();

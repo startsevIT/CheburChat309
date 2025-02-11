@@ -1,13 +1,9 @@
 ﻿namespace Domain.BusinessEntites.Entities;
 
-public class Message(Guid id, string text, User user, DateTime dateTime)
+public class Message
 {
-    public Guid Id { get; set; } = id;
-    public string Text { get; set; } = text;
-    public User User { get; set; } = user;
-    public DateTime DateTime { get; set; } = dateTime;
-    //crutch
-    public Message() : this("",new ()) { }
-    public Message(string text, User user) 
-        : this(Guid.NewGuid(), text, user, DateTime.Now) {}
+    public Guid Id { get; set; }
+    public string Text { get; set; }
+    public User User { get; set; }
+    public DateTime DateTime { get; set; }
 }
