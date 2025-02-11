@@ -4,7 +4,6 @@ using Domain.BusinessLogic;
 using Domain.Mapping;
 using Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace Infrastructure.DataBase.Repos;
@@ -45,7 +44,7 @@ public class UserRepo : IUserRepo
         return user.Map(chats);
     }
 
-    public async void RegisterAsync(RegisterUserDTO dto)
+    public async Task RegisterAsync(RegisterUserDTO dto)
     {
         using SqLiteDbContext db = new ();
         User? tryUser = await db.Users.FirstOrDefaultAsync(x => x.Login == dto.Login);
