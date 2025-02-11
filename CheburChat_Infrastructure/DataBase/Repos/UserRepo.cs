@@ -2,15 +2,28 @@
 using Domain.BusinessEntites.Entities;
 using Domain.BusinessLogic;
 using Domain.Mapping;
+using Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Infrastructure.DataBase.Repos;
 
 public class UserRepo : IUserRepo
 {
-    public Task<string> LoginAsync(LoginUserDTO dto)
+    public async Task<string> LoginAsync(LoginUserDTO dto)
     {
-        throw new NotImplementedException();
+        using SqLiteDbContext db = new ();
+
+        User? user = await db.Users.FirstOrDefaultAsync(x => x.Login == dto.Login) 
+            ?? throw new Exception("user not found");
+
+        if (user.Password != dto.Password)
+            throw new Exception("Password incorrect");
+
+        List<Claim> claims = [ new Claim("id", user.Id.ToString()) ];
+
+        return AuthOptions.CreateToken(claims);
     }
 
     public async Task<GetUserDTO> ReadAsync(Guid UserId)
