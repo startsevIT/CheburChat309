@@ -4,7 +4,7 @@ namespace Domain.BusinessLogic;
 
 public interface IUserRepo
 {
-    public Task RegisterAsync(RegisterUserDTO dto);
-    public Task<string> LoginAsync(LoginUserDTO dto);
-    public Task<GetUserDTO> ReadAsync(Guid UserId);
+    Task RegisterAsync(RegisterUserDTO dto);
+    Task<string> LoginAsync(LoginUserDTO dto);
+    Task<GetUserDTO> ReadAsync(Guid UserId);
 }

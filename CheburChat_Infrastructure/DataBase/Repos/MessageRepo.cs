@@ -8,7 +8,7 @@ namespace Infrastructure.DataBase.Repos;
 
 public class MessageRepo : IMessageRepo
 {
-    public async void CreateAsync(CreateMessageDTO dto, Guid userId)
+    public async Task CreateAsync(CreateMessageDTO dto, Guid userId)
     {
         using SqLiteDbContext db = new();
         User? user = await db.Users.FindAsync(userId) 

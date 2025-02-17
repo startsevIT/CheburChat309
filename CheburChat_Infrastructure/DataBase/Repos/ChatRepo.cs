@@ -8,18 +8,18 @@ namespace Infrastructure.DataBase.Repos;
 
 public class ChatRepo : IChatRepo
 {
-    public async void CreateAsync(CreateChatDTO dto, Guid UserId)
+    public async Task CreateAsync(CreateChatDTO dto, Guid UserId)
     {
         using SqLiteDbContext db = new();
+
         User user = await db.Users.FindAsync(UserId) 
             ?? throw new Exception("Not found");
-        Chat chat = dto.Map(user);
-        db.Chats.Add(chat);
+
+        db.Chats.Add(dto.Map(user));
         db.SaveChanges();
     }
 
-    //Протестировать и исправить в случае не работы
-    public async Task<GetChatDTO> ReadAsync(Guid ChatId, Guid UserId)
+    public async Task<GetChatDTO> ReadAndLinkAsync(Guid ChatId, Guid UserId)
     {
         using SqLiteDbContext db = new();
 
@@ -33,19 +33,20 @@ public class ChatRepo : IChatRepo
         {
             User? user = await db.Users.FindAsync(UserId) 
                 ?? throw new Exception("Not found");
+
             chat.Users.Add(user);
             db.SaveChanges();
         }
 
-        List<string> nickNames = [];
-        foreach (var u in chat.Users)
-            nickNames.Add(u.NickName);
+        //This
+        List<string> nickNames = [..chat.Users.Select(x => x.NickName)];
 
-        List<GetMessageDTO> messages = [];
-        MessageRepo messageRepo = new ();
-        //Заменить на Mapping
-        foreach (var m in chat.Messages)
-            messages.Add(await messageRepo.ReadAsync(m.Id));
+        //And this - equals
+        //List<string> nickNames1 = [];
+        //foreach (var u in chat.Users)
+        //    nickNames1.Add(u.NickName);
+
+        List<GetMessageDTO> messages = [..chat.Messages.Select(x => x.Map(x.User))];
         
         return new(chat.Name, messages, nickNames);
     }
