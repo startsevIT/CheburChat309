@@ -2,6 +2,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace Infrastructure.Auth;
 
@@ -19,10 +20,18 @@ public static class AuthOptions
             new JwtSecurityToken(
                 claims: claims,
                 expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(100)),
-                signingCredentials: new SigningCredentials(
-                    GetSymmetricSecurityKey(),
-                    SecurityAlgorithms.HmacSha256)
-                )
+                signingCredentials: new (GetSymmetricSecurityKey(), "HS256"))
             );
+    }
+
+    public static string HashPassword(string password)
+    {
+        byte[] hash = new Rfc2898DeriveBytes(password, 0).GetBytes(20);
+        return Convert.ToBase64String(hash);
+    }
+
+    public static bool VerifyPassword(string password, string hashPassword)
+    {
+        return HashPassword(password) == hashPassword;
     }
 }
