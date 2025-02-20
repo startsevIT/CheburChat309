@@ -17,7 +17,7 @@ public class UserRepo : IUserRepo
         User? user = await db.Users.FirstOrDefaultAsync(x => x.Login == dto.Login) 
             ?? throw new Exception("user not found");
 
-        if (AuthOptions.VerifyPassword(dto.Password,user.Password))
+        if (!AuthOptions.VerifyPassword(dto.Password,user.Password))
             throw new Exception("Password incorrect");
 
         List<Claim> claims = [ new Claim("id", user.Id.ToString()) ];
@@ -49,7 +49,7 @@ public class UserRepo : IUserRepo
             throw new Exception("User already exist");
 
         RegisterUserDTO final = new(dto.NickName, dto.Login, AuthOptions.HashPassword(dto.Password));
-
+        Console.WriteLine(final.Password);
         db.Users.Add(final.Map());
         db.SaveChanges();
     }
