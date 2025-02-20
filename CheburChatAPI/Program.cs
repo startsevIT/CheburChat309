@@ -14,26 +14,14 @@ ChatRepo chatRepo = new();
 
 app.MapPost("/users/register", async (RegisterUserDTO dto) =>
 {
-    try
-    {
-        await userRepo.RegisterAsync(dto);
-        return Results.Created();
-    }
-    catch (Exception ex)
-    {
-        return Results.Conflict(ex);
-    }
+    await userRepo.RegisterAsync(dto);
+    return Results.Created();
 });
 app.MapPost("/users/login", async (LoginUserDTO dto) =>
 {
-    try
-    {
-        return Results.Ok(await userRepo.LoginAsync(dto));
-    }
-    catch (Exception ex)
-    {
-        return Results.Conflict(ex);
-    }
+
+    return Results.Ok(await userRepo.LoginAsync(dto));
+
 });
 app.MapGet("/users/account", [Authorize] async (HttpContext ctx) =>
 {
@@ -45,6 +33,32 @@ app.MapGet("/users/account", [Authorize] async (HttpContext ctx) =>
     catch (Exception ex)
     {
         return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapPost("/chats",[Authorize] async (CreateChatDTO dto, HttpContext ctx) =>
+{
+    Guid userId = GetId(ctx);
+    try
+    {
+        await chatRepo.CreateAsync(dto, userId);
+        return Results.Created();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex);
+    }
+});
+app.MapGet("/chats/{chatId}", async (HttpContext ctx, Guid chatId) =>
+{
+    Guid userId = GetId(ctx);
+    try
+    {
+        return Results.Ok(await chatRepo.ReadAndLinkAsync(chatId, userId));
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex);
     }
 });
 
