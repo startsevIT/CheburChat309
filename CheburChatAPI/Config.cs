@@ -20,7 +20,7 @@ public static class Config
             }
         );
         builder.Services.AddCors();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(SwaggerCofig.AuthCofig);
         builder.Services.AddEndpointsApiExplorer();
     }
 
