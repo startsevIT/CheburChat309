@@ -34,5 +34,6 @@ public static class Config
             .AllowAnyOrigin());
         app.UseSwagger();
         app.UseSwaggerUI();
+        app.UseWebSockets();
     }
 }

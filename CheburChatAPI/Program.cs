@@ -1,6 +1,8 @@
 using Domain.BusinessEntites.DTOs;
 using Infrastructure.DataBase.Repos;
 using Microsoft.AspNetCore.Authorization;
+using System.Net.WebSockets;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder();
 builder.ServiceConfig();
@@ -49,7 +51,7 @@ app.MapPost("/chats",[Authorize] async (CreateChatDTO dto, HttpContext ctx) =>
         return Results.BadRequest(ex);
     }
 });
-app.MapGet("/chats/{chatId}", async (HttpContext ctx, Guid chatId) =>
+app.MapGet("/chats/{chatId}", [Authorize] async (HttpContext ctx, Guid chatId) =>
 {
     Guid userId = GetId(ctx);
     try
@@ -61,6 +63,35 @@ app.MapGet("/chats/{chatId}", async (HttpContext ctx, Guid chatId) =>
         return Results.BadRequest(ex);
     }
 });
+
+List<WebSocket> clients = [];
+app.Map("/ws", async (HttpContext ctx) =>
+{
+    WebSocket websocket = await ctx.WebSockets.AcceptWebSocketAsync();
+
+    clients.Add(websocket);
+
+    byte[] buffer = new byte[1024 * 4];
+
+    WebSocketReceiveResult result = await websocket.ReceiveAsync(new (buffer),CancellationToken.None);
+
+    while (result.CloseStatus == null)
+    {
+
+        string receiveMessage = Encoding.UTF8.GetString(buffer[..result.Count]);
+
+        byte[] sendMessage = Encoding.UTF8.GetBytes(receiveMessage);
+
+        foreach (var client in clients)
+            await client.SendAsync(new ArraySegment<byte>(sendMessage), result.MessageType, result.EndOfMessage, CancellationToken.None);
+
+        result = await websocket.ReceiveAsync(new(buffer), CancellationToken.None);
+    }
+    await websocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+
+    clients.Remove(websocket);
+});
+
 
 app.Run();
 
