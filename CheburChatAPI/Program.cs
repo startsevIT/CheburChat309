@@ -1,8 +1,8 @@
 using Domain.BusinessEntites.DTOs;
 using Infrastructure.DataBase.Repos;
 using Microsoft.AspNetCore.Authorization;
+using System;
 using System.Net.WebSockets;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder();
 builder.ServiceConfig();
@@ -13,6 +13,8 @@ app.AppConfig();
 MessageRepo messageRepo = new();
 UserRepo userRepo = new();
 ChatRepo chatRepo = new();
+Hub hub = new();
+
 
 app.MapPost("/users/register", async (RegisterUserDTO dto) =>
 {
@@ -64,32 +66,29 @@ app.MapGet("/chats/{chatId}", [Authorize] async (HttpContext ctx, Guid chatId) =
     }
 });
 
-List<WebSocket> clients = [];
-app.Map("/ws", async (HttpContext ctx) =>
+
+app.Map("/ws/{chatId}", [Authorize] async (HttpContext ctx, Guid chatId) =>
 {
+    Guid userId = GetId(ctx);
+
     WebSocket websocket = await ctx.WebSockets.AcceptWebSocketAsync();
 
-    clients.Add(websocket);
+    WebSocketClient client = new(websocket);
 
-    byte[] buffer = new byte[1024 * 4];
+    CreateMessageDTO recieveMessage = await hub.AddSocketAndReceiveMessageAsync(client);
 
-    WebSocketReceiveResult result = await websocket.ReceiveAsync(new (buffer),CancellationToken.None);
 
-    while (result.CloseStatus == null)
+    while (!client.IsClose)
     {
+        Guid messageId = await messageRepo.CreateAndReturnIdAsync(recieveMessage, userId, chatId);
 
-        string receiveMessage = Encoding.UTF8.GetString(buffer[..result.Count]);
+        ReadMessageDTO sendMessage = await messageRepo.ReadAsync(messageId);
 
-        byte[] sendMessage = Encoding.UTF8.GetBytes(receiveMessage);
+        await hub.SendMessageAllAsync(client, sendMessage);
 
-        foreach (var client in clients)
-            await client.SendAsync(new ArraySegment<byte>(sendMessage), result.MessageType, result.EndOfMessage, CancellationToken.None);
-
-        result = await websocket.ReceiveAsync(new(buffer), CancellationToken.None);
+        recieveMessage = await hub.RecieveMessageAsync(client);
     }
-    await websocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
-
-    clients.Remove(websocket);
+    await hub.RemoveSocket(client);
 });
 
 
@@ -99,3 +98,9 @@ static Guid GetId(HttpContext ctx)
 {
     return new(ctx.User.Claims.FirstOrDefault(x => x.Type == "id").Value);
 }
+
+
+
+
+
+
