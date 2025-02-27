@@ -15,7 +15,7 @@ public static class ChatMap
             Messages = []
         };
     }
-    public static GetChatDTO Map(this Chat chat, List<GetMessageDTO> messages, List<string> nickNames)
+    public static GetChatDTO Map(this Chat chat, List<ReadMessageDTO> messages, List<string> nickNames)
     {
         return new GetChatDTO(chat.Name, messages, nickNames);
     }

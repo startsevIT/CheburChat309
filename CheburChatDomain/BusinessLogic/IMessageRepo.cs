@@ -4,6 +4,6 @@ namespace Domain.BusinessLogic;
 
 public interface IMessageRepo
 {
-    Task CreateAsync(CreateMessageDTO dto, Guid userId);
-    Task<GetMessageDTO> ReadAsync(Guid MessageId);
+    Task<Guid> CreateAndReturnIdAsync(CreateMessageDTO dto, Guid userId, Guid chatId);
+    Task<ReadMessageDTO> ReadAsync(Guid MessageId);
 }

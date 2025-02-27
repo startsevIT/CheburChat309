@@ -46,7 +46,7 @@ public class ChatRepo : IChatRepo
         //foreach (var u in chat.Users)
         //    nickNames1.Add(u.NickName);
 
-        List<GetMessageDTO> messages = [..chat.Messages.Select(x => x.Map(x.User))];
+        List<ReadMessageDTO> messages = [..chat.Messages.Select(x => x.Map(x.User))];
         
         return new(chat.Name, messages, nickNames);
     }
